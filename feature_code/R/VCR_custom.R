@@ -130,64 +130,29 @@ vcr.custom.train <- function(X, y, probs, distToClasses=NULL) {
     stop("distToclasses has NAs")
   }
 
-  initfig<-(distToClasses) #minus because wrt to paper is with opposite sign here
-
-  rd=pamrfit$nonzero[ii] #getting reducted dimension
+  initfig<-(distToClasses) #
+  
+  #using compFarness with affine option that takes input the matrix distToClasses and estimate cumulative 
+  #distribution D(x,ki)
   farout <- compFarness(type = "affine", testdata = FALSE, yint = yint,
                         nlab = nlab, X = NULL, fig = initfig,
-                        d = NULL, figparams = NULL) #DON'T REALLYU KNOW IF TO FEED OR NOT D
+                        d = NULL, figparams = NULL) 
 
   figparams <- farout$figparams
-  figparams$ncolX <- d
-  #figparams$computeMD <- computeMD check what is that, probabbly related only to neuralnet
-  #figparams$classMS <- classMS check what is that, probbably related to neuralnet
-  #figparams$PCAfits <- farout$PCAfits #only for neuralnet??
+  figparams$ncolX <- d #REMOVE??
 
 
-  ####################################################
-  # calculating pairwise distances, for additional visualization feature
-
-  pw_mdS2 <-function(x, sd, prior, weight) { #pairwise mahalobis squared
-    if(! missing(weight)) {
-      posid <- (weight > 0)
-      if(any(posid)) {
-        weight <- sqrt(weight[posid])
-        x <- x[posid,  , drop = FALSE] * weight #get only positions non zero positions
-      }
-      else {
-        mat <- outer(rep(1, ncol(x)), log(prior), "*")
-        dimnames(mat) <- list(NULL, dimnames(centroids)[[2]])
-        return(mat)
-      }
-    }
-    p=ncol(t(x))
-    n=nrow(t(x))
-    pwd=matrix(NA, nrow=n, ncol=n)
-    sd=sd[posid]
-    for (i in 1:n){
-      pwd[,i]=mahalanobis(t(x),t(x)[i,],cov=diag(sd^2))
-    }
-    pwd
-  }
-
-  #pwd=pw_mdS2(xtest, sd, weight=posid)
-  ###############################################
-
-  return(list(X = X,
-              yint = yint,
-              y = levels[yint],
+  return(list(X = X, #inputted observations
+              yint = yint, #integer labels
+              y = levels[yint], #getting back y (for example if they were a string)
               levels = levels,
-              predint = predint,
-              pred = levels[predint],
-              altint = altint,
-              altlab = levels[altint],
-              PAC = PAC,
-              figparams = figparams,
-              fig = farout$fig,
-              farness = farout$farness,
-              ofarness = farout$ofarnes,
-              initfig=initfig, #INITFIG ADDED FOR TEST
-              posid=posid, #added for test
-              sd=sd#pwd=pwd #pairwise matrix distance for mds
-              ))
+              predint = predint, #predicted integer value
+              pred = levels[predint], #predicted value (for example if they were a string)
+              altint = altint, #integer of best alternative class
+              altlab = levels[altint], #best alternative clas
+              PAC = PAC, #PAC
+              figparams = figparams, #paramters estimated to get to estimate cdf D(x,g) that is used to compute farnees
+              fig = farout$fig, #estimated farness of each observation to each class
+              farness = farout$farness, #estimated farness of each observation to each given class
+              ofarness = farout$ofarness))
 }
