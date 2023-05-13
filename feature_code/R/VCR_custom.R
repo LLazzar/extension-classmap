@@ -125,21 +125,27 @@ vcr.custom.train <- function(X, y, probs, distToClasses=NULL) {
   #
   # Compute farness:
   #
+  if (!is.null(distToClasses)) {
+    
+    if (any(is.na(distToClasses))) { ##CHECK PUT FOR DEVELOPING REASONS PROBABLY COULD REMOVE
+      stop("distToclasses has NAs")
+    }
 
-  if (any(is.na(distToClasses))) { ##CHECK PUT FOR DEVELOPING REASONS PROBABLY COULD REMOVE
-    stop("distToclasses has NAs")
-  }
-
-  initfig<-(distToClasses) #
+    initfig<-(distToClasses) #
   
-  #using compFarness with affine option that takes input the matrix distToClasses and estimate cumulative 
-  #distribution D(x,ki)
-  farout <- compFarness(type = "affine", testdata = FALSE, yint = yint,
+    #using compFarness with affine option that takes input the matrix distToClasses and estimate cumulative 
+    #distribution D(x,ki)
+    farout <- compFarness(type = "affine", testdata = FALSE, yint = yint,
                         nlab = nlab, X = NULL, fig = initfig,
                         d = NULL, figparams = NULL) 
 
-  figparams <- farout$figparams
-  figparams$ncolX <- d #keep beacause this is used in vcr.custom.train to check if d matches
+    figparams <- farout$figparams
+    figparams$ncolX <- d #keep beacause this is used in vcr.custom.train to check if d matches
+  }
+  else {
+    figparams=NULL
+    farout=NULL
+  }
 
 
   return(list(X = X, #inputted observations
@@ -252,16 +258,22 @@ vcr.neural.newdata <- function(Xnew, ynew = NULL, probs,
     PAC[indsv] <- palt[indsv] / (ptrue[indsv] + palt[indsv])
     # (PAC and altint stay NA outside indsv)
   }
-  #
-  # Compute farness:
-  #
-  initfig=newDistToclasses
   
-  farout <- compFarness(type = "affine", testdata = TRUE, #again affine is good for our purpose as it does estimation based on train paramters
+  if (!is.null(newDistToclasses)) {
+    # Compute farness:
+    #
+    initfig=newDistToclasses
+  
+    farout <- compFarness(type = "affine", testdata = TRUE, #again affine is good for our purpose as it does estimation based on train paramters
                           yint = yintnew, nlab = nlab, X = NULL,
                           fig = initfig, d = d,
                           figparams = vcr.neural.train.out$figparams)
-  
+    }
+  else {
+    figparams=NULL
+    farout=NULL
+  }
+    
   
   return(list(yintnew = yintnew,
               ynew = levels[yintnew],
