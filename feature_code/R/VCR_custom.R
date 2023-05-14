@@ -74,7 +74,7 @@ vcr.custom.train <- function(X, y, probs, distToClasses=NULL) {
   d <- ncol(X)
   if (n < 2) stop("The training data should have more than one case.") #WTF YOU TRASNPOSED IT EARLIER
 
-  y=as.factor(data$y) #factorize the given classes
+  #y=as.factor(data$y) #factorize the given classes #NOT NEEDED?
 
   # Check whether y and its levels are of the right form:
   checked <- checkLabels(y, n, training = TRUE) #PROBABLY SHOULD RE DIG DEEP TO UNDERSTAND THIS FUNCTION
@@ -171,8 +171,8 @@ vcr.custom.train <- function(X, y, probs, distToClasses=NULL) {
               ofarness = farout$ofarness))
 }
 
-vcr.neural.newdata <- function(Xnew, ynew = NULL, probs,
-                               vcr.custom.train.out, newDistToclasses){
+vcr.custom.newdata <- function(Xnew, ynew = NULL, probs,
+                               vcr.custom.train.out, newDistToclasses=NULL){
   #
   # Prepares graphical display of new data fitted by a neural
   # net that was modeled on the training data, using the output
@@ -216,7 +216,7 @@ vcr.neural.newdata <- function(Xnew, ynew = NULL, probs,
   Xnew <- as.matrix(Xnew) # in case it is a data frame
   if (nrow(Xnew) == 1) Xnew <- t(Xnew)
   n <- nrow(Xnew)
-  d <- vcr.neural.train.out$figparams$ncolX
+  d <- vcr.custom.train.out$figparams$ncolX #it has to be fixed!
   if (ncol(Xnew) != d) {
     stop(paste0("Xnew should have ", d,
                 " columns, like the training data."))
@@ -288,7 +288,7 @@ vcr.neural.newdata <- function(Xnew, ynew = NULL, probs,
     farout <- compFarness(type = "affine", testdata = TRUE, #again affine is good for our purpose as it does estimation based on train paramters
                           yint = yintnew, nlab = nlab, X = NULL,
                           fig = initfig, d = d,
-                          figparams = vcr.neural.train.out$figparams)
+                          figparams = vcr.custom.train.out$figparams)
     }
   else {
     figparams=NULL
