@@ -5,8 +5,6 @@ source("R_classmap_package_full/R/VCR_auxiliaryFunctions.R") #importing auxillar
                                                              # this script is available in classmap package
                                                              # so in case of integration of VCR_pamr this import would be useless
 #########################
-source("feature_code/R/VCR_auxiliaryFunctions_alt.R") # an alternative version of the file used for some experiments
-                                                      # for example i tried to removed the division by omedian in compFareness
 
 # TRYING TO DEVISE THIS FUNCTION LIKE vcr.neural ALREADY IN THE PACKAGE THAT IS RATHER FLEXIBLE FOR NEURAL NETWORKS
 
@@ -33,7 +31,7 @@ vcr.custom.train <- function(X, y, probs, distToClasses=NULL) {
   #                   on the training set, either naturally or derived in some way by the user for its algorithm
   #                   The columns of probs must be in the same order as the levels of y.
   #                   This posteriors should be consisent with the fact that classifier
-  #                   obsject to class with higher posterior.
+  #                   obsject to class with higher posterior (NBNB).
   #   distToClasses : set of distances of each training observation to all possible class in
   #                 : the eye of the trained algorithm, defined by user, it allows computation 
   #                 : of farness for each observaiton and thus of the classmap plot
@@ -104,7 +102,9 @@ vcr.custom.train <- function(X, y, probs, distToClasses=NULL) {
   #
   # Compute prediction for all objects in the training data:
   #
-  predint <- apply(probs[, , drop = FALSE], 1, which.max) 
+  predint <- apply(probs[, , drop = FALSE], 1, which.max) #label predicted by algortihm
+  
+  #
   #
   # 
   # Computing all the quantities for the PAC
@@ -123,13 +123,21 @@ vcr.custom.train <- function(X, y, probs, distToClasses=NULL) {
   PAC[indsv] <- palt[indsv] / (ptrue[indsv] + palt[indsv])
   # (PAC and altint stay NA outside indsv)
   #
-  # Compute farness:
+  #
   #
   if (!is.null(distToClasses)) {
-    
-    if (any(is.na(distToClasses))) { ##CHECK PUT FOR DEVELOPING REASONS PROBABLY COULD REMOVE
-      stop("distToclasses has NAs")
-    }
+    #
+    # Compute Farness
+    #
+    #
+    ##########checks of correct input
+    if (length(dim(distToClasses)) != 2) stop("distToclasses should be a matrix.")
+    if (nrow(probs) != n) stop(paste0(
+      "The matrix distToclasses should have ", n, " rows"))
+    if (ncol(probs) != nlab) stop(paste0(
+      "The matrix distToclasses should have ", nlab, " columns"))
+    if (any(is.na(distToClasses))) stop("distToclasses should not have any NA's.")
+    ####################
 
     initfig<-(distToClasses) #
   
@@ -262,6 +270,19 @@ vcr.neural.newdata <- function(Xnew, ynew = NULL, probs,
   if (!is.null(newDistToclasses)) {
     # Compute farness:
     #
+    #
+    ##########checks of correct input
+    if (length(dim(newDistToClasses)) != 2) stop("newDistToclasses should be a matrix.")
+    if (nrow(probs) != n) stop(paste0(
+      "The matrix newDistToclasses should have ", n, " rows"))
+    if (ncol(probs) != nlab) stop(paste0(
+      "The matrix newDistToclasses should have ", nlab, " columns"))
+    if (any(is.na(distToClasses))) stop("newDistToclasses should not have any NA's.")
+    ####################
+    #
+    #
+    #
+    
     initfig=newDistToclasses
   
     farout <- compFarness(type = "affine", testdata = TRUE, #again affine is good for our purpose as it does estimation based on train paramters

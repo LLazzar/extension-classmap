@@ -1,9 +1,7 @@
-handle distToClasses=NULL
-handle newdata
-add a check if apply(probs[, , drop = FALSE], 1, which.max) do not match given labels (both train and newdata) (it could be both error in defining probabilities for algorithm or incorrect ordering of columns)
-add dimensionality check to dist to class
 
 
 
 DEBUG
 feed y not factors, should give error.
+feed null distToclasses
+feed incorrected dist to class (for ex in dimensions)
