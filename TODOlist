@@ -1,8 +1,10 @@
-if posteriors are feeded as dataframe?
-does X input as input is needed at all?
+if posteriors are feeded as dataframe? in new data is converted to matirx in vcr.train?
+does X input as input is needed at all? RENMOVING X ONLY DOUBT IF DIMENSIOND D IN COMPUTEFARNESS AFFINE WITH TESTADATA=true
 search for neural in funciton and adjust
 vcr.custom.train not required in custom.newdata if you don't want to compute farness
 fix this   d <- vcr.custom.train.out$figparams$ncolX #it has to be fixed! (it come out in test.R where vcr.custom.train.out has figparams null)  (mayybe add check only if computing farnes)
+
+polish function
 
 
 DEBUG
@@ -11,3 +13,4 @@ feed null distToclasses
 feed incorrected dist to class (for ex in dimensions)
 test quasi residual plot (with farness NULL)
 test farness
+try to feed to both functions distTovclass or newdistclass with wrong dim
