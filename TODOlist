@@ -1,10 +1,7 @@
 if posteriors are feeded as dataframe? in new data is converted to matirx in vcr.train?
 search for neural in funciton and adjust
-vcr.custom.train not required in custom.newdata if you don't want to compute farness
-fix this   d <- vcr.custom.train.out$figparams$ncolX #it has to be fixed! (it come out in test.R where vcr.custom.train.out has figparams null)  (mayybe add check only if computing farnes)
-
 polish function
-
+make documentation
 
 DEBUG
 feed y not factors, should give error.

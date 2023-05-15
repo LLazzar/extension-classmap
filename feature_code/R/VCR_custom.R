@@ -81,7 +81,8 @@ vcr.custom.train <- function(y, probs, distToClasses=NULL) {
   # classSizes
   #
   # Check matrix of posterior probabilities:
-
+  
+  probs <- as.matrix(probs)
   if (length(dim(probs)) != 2) stop("probs should be a matrix.")
   if (nrow(probs) != n) stop(paste0(
     "The matrix probs should have ", n, " rows"))
