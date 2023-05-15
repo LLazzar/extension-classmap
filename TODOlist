@@ -1,5 +1,5 @@
-search for neural in funciton and adjust
-polish function
+search for neural in funnction and adjust
+polish function !!
 make documentation
 understand why indetiify function is off??
 
@@ -11,3 +11,7 @@ test quasi residual plot (with farness NULL)
 test farness
 try to feed to both functions distTovclass or newdistclass with wrong dim
 use quasi residual plot
+
+
+IN THE PACKAGE BUILD POHASE
+check import namespace
