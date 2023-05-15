@@ -1,12 +1,13 @@
-if posteriors are feeded as dataframe? in new data is converted to matirx in vcr.train?
 search for neural in funciton and adjust
 polish function
 make documentation
+understand why indetiify function is off??
 
 DEBUG
-feed y not factors, should give error.
+feed y not factors, should give error. OK gives error
 feed null distToclasses
 feed incorrected dist to class (for ex in dimensions)
 test quasi residual plot (with farness NULL)
 test farness
 try to feed to both functions distTovclass or newdistclass with wrong dim
+use quasi residual plot

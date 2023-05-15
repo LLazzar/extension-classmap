@@ -1,9 +1,10 @@
 ######################### (code that will not be needed in case of classmap merge)
-#to import functions needed for VCR_pamr (especially for checkLabels, computeFarness..)
+
+#to import functions needed for VCR_custom (especially for checkLabels, computeFarness..)
 library(cellWise) #for transfo function used in Comp fareness in VCR_auxillaryFunctions.R
 source("R_classmap_package_full/R/VCR_auxiliaryFunctions.R") #importing auxillary functions needed
-                                                             # this script is available in classmap package
-                                                             # so in case of integration of VCR_pamr this import would be useless
+                                                             #this script is available in classmap package
+                                                             #so in case of integration of VCR_pamr this import would be useless
 #########################
 
 # TRYING TO DEVISE THIS FUNCTION LIKE vcr.neural ALREADY IN THE PACKAGE THAT IS RATHER FLEXIBLE FOR NEURAL NETWORKS
