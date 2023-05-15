@@ -9,7 +9,7 @@ source("R_classmap_package_full/R/VCR_auxiliaryFunctions.R") #importing auxillar
 # TRYING TO DEVISE THIS FUNCTION LIKE vcr.neural ALREADY IN THE PACKAGE THAT IS RATHER FLEXIBLE FOR NEURAL NETWORKS
 
 
-vcr.custom.train <- function(X, y, probs, distToClasses=NULL) {
+vcr.custom.train <- function(y, probs, distToClasses=NULL) {
   #
   # Using the outputs of a general classification algorithm
   # applied to the training data, this function prepares for
@@ -60,21 +60,10 @@ vcr.custom.train <- function(X, y, probs, distToClasses=NULL) {
   #
   #
   #
-  # Subsetting to the same subset (of variables and observation) on which pamr fit works on.
+  #
 
-  X <- as.matrix(X) # in case it is a data frame
-  
-  #NAs check
-  if (nrow(X) == 1) X <- t(X) #one observation feeded
-  if (sum(is.na(as.vector(X))) > 0) {
-    stop("The coordinate matrix X has NA's.")
-  }
-  
-  n <- nrow(X)
-  d <- ncol(X)
+  n <- length(y)
   if (n < 2) stop("The training data should have more than one case.") #WTF YOU TRASNPOSED IT EARLIER
-
-  #y=as.factor(data$y) #factorize the given classes #NOT NEEDED?
 
   # Check whether y and its levels are of the right form:
   checked <- checkLabels(y, n, training = TRUE) #PROBABLY SHOULD RE DIG DEEP TO UNDERSTAND THIS FUNCTION
@@ -102,7 +91,7 @@ vcr.custom.train <- function(X, y, probs, distToClasses=NULL) {
   #
   # Compute prediction for all objects in the training data:
   #
-  predint <- apply(probs[, , drop = FALSE], 1, which.max) #label predicted by algortihm
+  predint <- apply(probs[, , drop = FALSE], 1, which.max) #label predicted by algorithm
   
   #
   #
@@ -139,16 +128,13 @@ vcr.custom.train <- function(X, y, probs, distToClasses=NULL) {
     if (any(is.na(distToClasses))) stop("distToclasses should not have any NA's.")
     ####################
 
-    initfig<-(distToClasses) #
-  
     #using compFarness with affine option that takes input the matrix distToClasses and estimate cumulative 
     #distribution D(x,ki)
     farout <- compFarness(type = "affine", testdata = FALSE, yint = yint,
-                        nlab = nlab, X = NULL, fig = initfig,
+                        nlab = nlab, X = NULL, fig = distToClasses,
                         d = NULL, figparams = NULL) 
 
     figparams <- farout$figparams
-    figparams$ncolX <- d #keep beacause this is used in vcr.custom.train to check if d matches
   }
   else {
     figparams=NULL
@@ -156,8 +142,7 @@ vcr.custom.train <- function(X, y, probs, distToClasses=NULL) {
   }
 
 
-  return(list(X = X, #inputted observations
-              yint = yint, #integer labels
+  return(list(yint = yint, #integer labels
               y = levels[yint], #getting back y (for example if they were a string)
               levels = levels,
               predint = predint, #predicted integer value
@@ -165,14 +150,14 @@ vcr.custom.train <- function(X, y, probs, distToClasses=NULL) {
               altint = altint, #integer of best alternative class
               altlab = levels[altint], #best alternative clas
               PAC = PAC, #PAC
-              figparams = figparams, #paramters estimated to get to estimate cdf D(x,g) that is used to compute farnees
-              fig = farout$fig, #estimated farness of each observation to each class
-              farness = farout$farness, #estimated farness of each observation to each given class
-              ofarness = farout$ofarness))
+              figparams = figparams, #EXIST ONLY IF DISTTOCLLASS FEEDEDparamters estimated to get to estimate cdf D(x,g) that is used to compute farnees
+              fig = farout$fig, #EXIST ONLY .. estimated farness of each observation to each class
+              farness = farout$farness, #EXIST ONLY... #estimated farness of each observation to each given class
+              ofarness = farout$ofarness #EXIST ONLY
+              ))
 }
 
-vcr.custom.newdata <- function(Xnew, ynew = NULL, probs,
-                               vcr.custom.train.out, newDistToclasses=NULL){
+vcr.custom.newdata <- function(ynew, probs, vcr.custom.train.out, newDistToClasses=NULL){
   #
   # Prepares graphical display of new data fitted by a neural
   # net that was modeled on the training data, using the output
@@ -213,17 +198,8 @@ vcr.custom.newdata <- function(Xnew, ynew = NULL, probs,
   #   ofarness  : For each object i, its lowest farness to any
   #               class, including its own. Always exists.
   #
-  Xnew <- as.matrix(Xnew) # in case it is a data frame
-  if (nrow(Xnew) == 1) Xnew <- t(Xnew)
-  n <- nrow(Xnew)
-  d <- vcr.custom.train.out$figparams$ncolX #it has to be fixed!
-  if (ncol(Xnew) != d) {
-    stop(paste0("Xnew should have ", d,
-                " columns, like the training data."))
-  }
-  if (sum(is.na(as.vector(Xnew))) > 0) {
-    stop("The coordinate matrix Xnew contains NA's.")
-  }
+  n <- length(ynew)
+  
   levels <- vcr.custom.train.out$levels # as in training data
   nlab   <- length(levels) # number of classes
   #
@@ -267,28 +243,25 @@ vcr.custom.newdata <- function(Xnew, ynew = NULL, probs,
     # (PAC and altint stay NA outside indsv)
   }
   
-  if (!is.null(newDistToclasses)) {
+  if (!is.null(newDistToClasses)) {
     # Compute farness:
     #
     #
     ##########checks of correct input
     if (length(dim(newDistToClasses)) != 2) stop("newDistToclasses should be a matrix.")
-    if (nrow(probs) != n) stop(paste0(
+    if (nrow(newDistToClasses) != n) stop(paste0(
       "The matrix newDistToclasses should have ", n, " rows"))
-    if (ncol(probs) != nlab) stop(paste0(
+    if (ncol(newDistToClasses) != nlab) stop(paste0(
       "The matrix newDistToclasses should have ", nlab, " columns"))
-    if (any(is.na(distToClasses))) stop("newDistToclasses should not have any NA's.")
+    if (any(is.na(newDistToClasses))) stop("newDistToclasses should not have any NA's.")
     ####################
     #
     #
     #
     
-    initfig=newDistToclasses
-  
     farout <- compFarness(type = "affine", testdata = TRUE, #again affine is good for our purpose as it does estimation based on train paramters
                           yint = yintnew, nlab = nlab, X = NULL,
-                          fig = initfig, d = d,
-                          figparams = vcr.custom.train.out$figparams)
+                          fig = newDistToClasses, figparams = vcr.custom.train.out$figparams) #removed d= check if it is ok!
     }
   else {
     figparams=NULL
