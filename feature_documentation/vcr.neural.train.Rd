@@ -1,39 +1,22 @@
-\name{vcr.neural.train}
-\alias{vcr.neural.train}
+\name{vcr.custom.train}
+\alias{vcr.custom.train}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Prepare for visualization of a neural network classification on training data.
+Prepare for visualization of a classification made by a custom algorithm on training data.
 }
 \description{
-Produces output for the purpose of constructing graphical displays such as the \code{\link{classmap}}. The user first needs train a neural network. The representation of the data in a given layer (e.g. the final layer before applying the softmax function) then serves as the argument \code{X} to  \code{\link{vcr.neural.train}}.
+Produces output for the purpose of constructing graphical displays such as the silplot and quasi-residual plot. The user first needs train its classfier of choice on the training set. Then here the predicted posteriors probability on the training set are used along with the true labels. If a distToClass matrix is provided, the function calculates 'farness', needed to construct classmap plot.
 }
 
 \usage{
-vcr.neural.train(X, y, probs, estmethod = meancov)
+vcr.custom.train(y, probs, distToClass=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{X}{the coordinates of the \code{n} objects of the training
-                data, in the layer chosen by the user. Missing
-                values are not allowed.
-}
-\item{y}{factor with the given class labels of the objects.
-                Make sure that the levels are in the same order as
-                used in the neural net, i.e. the columns of its
-                binary "once-hot-encoded" response vectors.}
-\item{probs}{posterior probabilities obtained by the neural
-                net, e.g. in keras. For each case (row of \code{X}),
-                the classes have probabilities that add up to 1.
-                Each row of the matrix probs contains these
-                probabilities. The columns of probs must be in
-                the same order as the levels of \code{y}.}
-\item{estmethod}{function for location and covariance estimation.
-                Should return a list with \code{$m} and \code{$S}.
-                Can be \code{meancov}
-                (classical mean and covariance matrix) or \code{DetMCD}.
-                If one or more classes have a singular covariance
-                matrix, the function automatically switches to
-                the PCA-based farness used in \code{\link{vcr.svm.train}}.}
+
+\item{y}{factor with the given/true class labels of the objects.}
+\item{probs}{Matrix cointaining the posterior probabilities obtained on the considered training set by the trained classifier. Each row represents the set of posterior probabilities for a certain observation for the different classes, that are represented in the columns. The order of the observations in the rows must match the same order used in \code{y}. The classes in the columns must be in the same order as the levels of \code{y}. The posteriors probabilities should be consistent with the fact that the classifier assign the observation to the class for which the posterior probability is higher and permit PAC computation. Each row should add up to 1.}
+\item{distToclass}{Matrix containing the distances of each observation to each possible class. The user should produce this matrix using a custom-devised metric that is coherent with how the trained classifier works and sees the data. The ordering for rows and columns in \code{probs}. This input allows the computation of the farness value for each observation and enables the \code{classmap} plot.}
 
 }
 
@@ -65,7 +48,7 @@ Raymaekers J., Rousseeuw P.J.(2021). Silhouettes and quasi residual plots for ne
 }
 
 \author{
- Raymaekers J., Rousseeuw P.J.
+ Lazzari. L, Raymaekers J., Rousseeuw P.J.
 }
 
 \seealso{

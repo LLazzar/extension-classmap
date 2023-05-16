@@ -1,22 +1,22 @@
-\name{vcr.neural.newdata}
-\alias{vcr.neural.newdata}
+\name{vcr.custom.newdata}
+\alias{vcr.custom.newdata}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Prepare for visualization of a neural network classification on new data.
+Prepare for visualization of a classification made by a custom algorithm on new data.
 }
 \description{
-  Prepares graphical display of new data fitted by a neural
-  net that was modeled on the training data, using the output
-  of \code{\link{vcr.neural.train}} on the training data.
+  Produces outputs for graphical displays of new data fitted by a custom classifier
+  that was modeled on the training data, using the output
+  of \code{\link{vcr.custom.train}} on the training data.
 }
 \usage{
-vcr.neural.newdata(Xnew, ynew = NULL, probs,
-                   vcr.neural.train.out)
+vcr.neural.newdata(ynew = NULL, probs,
+                   vcr.neural.train.out, newDistToClass=NULL)
 }
 
 \arguments{
 \item{Xnew}{data matrix of the new data, with the same number of columns as in the training data. Missing values in \code{Xnew} are not allowed.}
-\item{ynew}{factor with class membership of each new case. Can be \code{NA} for some or all cases. If \code{NULL}, is assumed to be \code{NA} everywhere.}
+\item{ynew}{factor with given/true class membership of each new case. Can be \code{NA} for some or all cases. If \code{NULL}, is assumed to be \code{NA} everywhere.}
 \item{probs}{posterior probabilities obtained by running the neural net on the new data.}
 \item{vcr.neural.train.out}{ output of \code{\link{vcr.neural.train}} on the training data.}
 }

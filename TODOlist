@@ -1,5 +1,6 @@
 make documentation
 understand why indetiify function is off??
+make vignette
 
 DEBUG
 feed y not factors, should give error. OK gives error
