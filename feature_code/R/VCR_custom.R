@@ -1,10 +1,14 @@
 ######################### (code that will not be needed in case of classmap merge)
 
 #to import functions needed for VCR_custom (especially for checkLabels, computeFarness..)
-library(cellWise) #for transfo function used in Comp fareness in VCR_auxillaryFunctions.R
+library(cellWise) #for transfo function used in Comp fareness in VCR_auxillaryFunctions.R #this would go in imports in (NAMESCPACE) of the package
 source("R_classmap_package_full/R/VCR_auxiliaryFunctions.R") #importing auxillary functions needed
                                                              #this script is available in classmap package
-                                                             #so in case of integration of VCR_pamr this import would be useless
+                                                             #so in case of integration of VCR_custom to classmap
+                                                             #this import would be useless
+
+#when building classmapExt cellwise should go on inports and VCR_auxiliaryFunctions.R put in the package (as it can't be imported from classmap sinc eit is invisible from user)
+
 #########################
 
 # TRYING TO DEVISE THIS FUNCTION LIKE vcr.neural ALREADY IN THE PACKAGE THAT IS RATHER FLEXIBLE FOR NEURAL NETWORKS
@@ -16,26 +20,23 @@ vcr.custom.train <- function(y, probs, distToClasses=NULL) {
   # applied to the training data, this function prepares for
   # graphical displays.
   #
-  ##########
-  # TO DO LIST:
-  # MISSING vcr.custom.newdata
-  #########
+  #
   #
   # 
   # Arguments:
-  #   X             : the coordinates of the n objects of the training
-  #                   data. Missing values are not allowed.
+  #
   #   y             : factor with the given class labels of the objects.
   #                   Make sure that the levels are in the same order as
   #                   used by the training algorithm.
   #   probs         : set of posteriors probabilities that the trained model produce
-  #                   on the training set, either naturally or derived in some way by the user for its algorithm
+  #                   on the training set considered, either naturally or derived in some way by the user for its algorithm
   #                   The columns of probs must be in the same order as the levels of y.
   #                   This posteriors should be consisent with the fact that classifier
-  #                   obsject to class with higher posterior (NBNB).
+  #                   object to class with higher posterior (NBNB).
   #   distToClasses : set of distances of each training observation to all possible class in
-  #                 : the eye of the trained algorithm, defined by user, it allows computation 
-  #                 : of farness for each observaiton and thus of the classmap plot
+  #                   the eye of the trained algorithm, defined by user, it allows computation 
+  #                   of farness for each observaiton and thus of the classmap plot.
+  #                   The columns of distToclass, that represents the classes, must be in the same order as the levels of y.
   # 
   # Returns:
   #   yint      : given labels as integer 1, 2, 3, ...
@@ -48,13 +49,10 @@ vcr.custom.train <- function(y, probs, distToClasses=NULL) {
   #   altint    : alternative class as integer, i.e. the non-given
   #               class number with the highest mixture density.
   #   altlab    : alternative class of each object.
-  #   classMS   : list with center and covariance matrix of each class
   #   PAC       : probability of alternative class for each object
-  #   PCAfits   : if not NULL, PCA fits to each class, estimated from
-  #               the training data but also useful for new data.
   #   figparams : parameters for computing fig, can be used for
   #               new data.
-  #   fig       : distance of each object i from each class g.
+  #   fig       : farness of each object i from each class g.
   #   farness   : farness of each object to its given class.
   #   ofarness  : For each object i, its lowest farness to any
   #               class, including its own. Always exists.
@@ -64,10 +62,10 @@ vcr.custom.train <- function(y, probs, distToClasses=NULL) {
   #
 
   n <- length(y)
-  if (n < 2) stop("The training data should have more than one case.") #WTF YOU TRASNPOSED IT EARLIER
+  if (n < 2) stop("The training data should have more than one case.") 
 
   # Check whether y and its levels are of the right form:
-  checked <- checkLabels(y, n, training = TRUE) #PROBABLY SHOULD RE DIG DEEP TO UNDERSTAND THIS FUNCTION
+  checked <- checkLabels(y, n, training = TRUE) 
   
   # If it did not stop: yint has length n, and its values are in
   # 1, ..., nlab without gaps. It is NA where y is: outside indsv.
@@ -77,11 +75,11 @@ vcr.custom.train <- function(y, probs, distToClasses=NULL) {
   nlab    <- length(levels)
   yint    <- lab2int(y) #given label (true) as integer
   yintv   <- yint[indsv] #subsetting yint variable to non NAs
-  classSizes <- rep(0, nlab)  ###PROBABLY TO BE REMOVED
-  for (g in seq_len(nlab)) {classSizes[g] <- sum(yintv == g)} ### PROBABLY TO BE REMOVED
-  # classSizes
+  
+  #
   #
   # Check matrix of posterior probabilities:
+  #
   
   probs <- as.matrix(probs)
   if (length(dim(probs)) != 2) stop("probs should be a matrix.")
@@ -93,7 +91,9 @@ vcr.custom.train <- function(y, probs, distToClasses=NULL) {
   #
   # Compute prediction for all objects in the training data:
   #
-  predint <- apply(probs[, , drop = FALSE], 1, which.max) #label predicted by algorithm
+  predint <- apply(probs[, , drop = FALSE], 1, which.max) #label that should be predicted by algorithm
+                                                          #for that NB that user provide posterior that are consistent
+                                                          #in the sense that classifier predicts label with higher posterior
   
   #
   #
@@ -116,7 +116,7 @@ vcr.custom.train <- function(y, probs, distToClasses=NULL) {
   #
   #
   #
-  if (!is.null(distToClasses)) {
+  if (!is.null(distToClasses)) { #if feeded then D(x,g) is estimated to get farness and paramters for estimation are saved for eventual test data
     #
     # Compute Farness
     #
@@ -161,40 +161,34 @@ vcr.custom.train <- function(y, probs, distToClasses=NULL) {
 
 vcr.custom.newdata <- function(ynew, probs, vcr.custom.train.out, newDistToClasses=NULL){
   #
-  # Prepares graphical display of new data fitted by a neural
-  # net that was modeled on the training data, using the output
-  # of vcr.neural.train() on the training data.
+  # Prepares graphical display of new data (test) fitted by a custom classifier
+  # that was modeled on the training data, using the output
+  # of vcr.custom.train() on the training data.
   #
   # Arguments:
-  #   Xnew                 : data matrix of the new data, with the
-  #                          same number of columns d as in the
-  #                          training data.
-  #                          Missing values are not allowed.
+  #   
   #   ynew                 : factor with class membership of each new
   #                          case. Can be NA for some or all cases.
   #                          If NULL, is assumed to be NA everywhere.
   #   probs                : posterior probabilities obtained by
-  #                          running the neural net on the new data.
-  #   vcr.custom.train.out : output of vcr.neural.train() on the
+  #                          running the classifier on the new data.
+  #   vcr.custom.train.out : output of vcr.custom.train() on the
   #                          training data.
   #
   # Returns:
   #   yintnew   : given labels as integers 1, 2, 3, ..., nlab.
   #               Can have NA's.
   #   ynew      : labels if yintnew is available, else NA.
-  #   levels    : levels of the response, from vcr.neural.train.out
+  #   levels    : levels of the response, from vcr.custom.train.out
   #   predint   : predicted label as integer, always exists.
   #   pred      : predicted label of each object
   #   altint    : alternative label as integer if yintnew was given,
   #               else NA.
   #   altlab    : alternative label if yintnew was given, else NA.
-  #   classMS   : list with center and covariance matrix of each class,
-  #               from vcr.neural.train.out
   #   PAC       : probability of alternative class for each object
   #               with non-NA yintnew.
   #   figparams : (from training) parameters used to compute fig
-  #   fig       : farness of each object i from each class g.
-  #               Always exists.
+  #   fig       : farness of each object i from each class g.  #             
   #   farness   : farness of each object to its given class, for
   #               objects with non-NA yintnew.
   #   ofarness  : For each object i, its lowest farness to any
@@ -202,7 +196,7 @@ vcr.custom.newdata <- function(ynew, probs, vcr.custom.train.out, newDistToClass
   #
   n <- length(ynew)
   
-  levels <- vcr.custom.train.out$levels # as in training data
+  levels <- vcr.custom.train.out$levels # as in training data #for this we require vcr.custom.train out
   nlab   <- length(levels) # number of classes
   #
   if (is.null(ynew)) ynew <- factor(rep(NA, n), levels = levels)
