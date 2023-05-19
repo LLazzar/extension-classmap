@@ -1,6 +1,7 @@
 polish documentation
 understand why indetiify function is off??
 make vignettes
+add factor with order same of feede to algorithm (like in description of y vcr.neural.train) it is crucial if for exampel comes from python where factor do not exist
 
 DEBUG
 feed y not factors, should give error. OK gives error
@@ -14,3 +15,8 @@ use quasi residual plot
 
 IN THE PACKAGE BUILD POHASE
 check import namespace
+
+###MDScolorscape
+
+started building
+adjust fact of indsv, in mds i can keep also observaiton with na values in y and na pac and plot them black
