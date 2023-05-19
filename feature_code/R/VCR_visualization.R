@@ -5,7 +5,7 @@
 
 #baseline ispiration is taken from silplot function so it is written in that style
 
-mdsColorscale <- function (vcrout, diss, classLabels = NULL) {
+mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, main=NULL, cex=1) {
   
   nlab <- length(vcrout$levels)
   
@@ -26,7 +26,7 @@ mdsColorscale <- function (vcrout, diss, classLabels = NULL) {
   
   #produce main colors
   if (is.null(classCols)) {
-    classCols <- rainbow(nlab) #like in silplot son that color would hopefully match in the two visualizaitons
+    classCols <- rainbow(nlab) #like in silplot son that color would hopefully match in the two visualizations
   }
   else {
     if (!is.vector(classCols)) {
@@ -101,17 +101,35 @@ mdsColorscale <- function (vcrout, diss, classLabels = NULL) {
     main <- paste0(whichdata, " MDS color-scaled plot ")
   }
   
-  cmdscale(diss)
+  mds=cmdscale(diss)
   
-  y=c("A","A","A", "C", "B", "B", "C")
-  y=as.factor(y)
-  levels=levels(y)
-  nlab=length(levels)
-  classCols #defines class colors
+  #QUANTITIES DEFINED FOR TES, REMOVE LATER
+  #y=c("A","A","A", "C", "B", "B", "C")
+  #y=as.factor(y)
+  #yintv=as.numeric(y)
+  #levels=levels(y)
+  #nlab=length(levels)
+  #classCols #defines class colors
   
   #matching each observation with its class color
-  col_vec_true = colors[match(data$y, c("  1", "  2", "  3", "  4"))]
+  ycolor=classCols[yintv]
   
+  #creating a vector with faded color 
+  yshade=rep(NA,length(yintv))
   
+  #setting the shade according to PAC/sil value (using PAC because range for scale pal is [0,1], if we would use sil value we would have to to stretch again only in [0,1] domain)
+  for (i in 1:length(yshade)){
+    pal <- colorRamp(c(ycolor[i], "white")) #create the palette containing gradient between the color and white
+    pal = pal(0.9*PAC[i]) #set color according to PAC information
+    yshade[i] = rgb(pal, maxColorValue = 255) #color back to code
+  }
+  
+  #setting shape
+  yshape=ifelse(PAC > 0.5, 22, 21) #if PAC > 0.5 point is misclassified, shape pch=22 square
+                                   #else  point is correctly classified, shape pch=21 circle
+  
+  plot(mds, col=ycolor, pch=yshape, bg=yshade, cex=1)
+  
+  legend("topright", legend=lvls, col=classCols)
   
 }
