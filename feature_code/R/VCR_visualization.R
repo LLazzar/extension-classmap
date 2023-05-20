@@ -45,11 +45,13 @@ mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, mai
     if (is.null(vcrout$yint)) {
       stop("there is no vcrout$yint or vcrout$yintnew")
     }
-    yintv <- vcrout$yint  
+    yintv <- vcrout$yint
+    yv <- vcrout$y
     training <- TRUE    #identify in variable that discrimanates between training and test set
   }
   else {
     yintv <- vcrout$yintnew #yintv represents true labels regardless training or not 
+    yv <- vcrout$ynew
     training <- FALSE
   }
   
@@ -126,10 +128,42 @@ mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, mai
   
   #setting shape
   yshape=ifelse(PAC > 0.5, 22, 21) #if PAC > 0.5 point is misclassified, shape pch=22 square
-                                   #else  point is correctly classified, shape pch=21 circle
+  #else  point is correctly classified, shape pch=21 circle
   
-  plot(mds, col=ycolor, pch=yshape, bg=yshade, cex=1)
+  #plot(mds, col=ycolor, pch=yshape, bg=yshade, cex=1)
   
-  legend("topright", legend=lvls, col=classCols)
+  #trying instead using ggplot2
+  #in ggplot we need dataframe with all related quantities, that's how it works
+  
+  #creating dataframe with coordinates
+  plot_data <- data.frame(
+    dim1 = mds[,1],
+    dim2 = mds[,2],
+    PAC = PAC,
+    ycolor = ycolor,
+    yv=yv,
+    yshape = ifelse(PAC > 0.5, "Misclassified", "Correctly Classified"),
+    yshade = yshade
+  )
+  
+  class_colors = setNames(classCols, lvls ) #match 
+  
+  library(ggplot2)
+  
+  gg <- ggplot(plot_data, aes(x = dim1, y =dim2, color = yv, fill = yshade, shape = yshape, stroke=1.2)) +
+    geom_point(size = 3, alpha=1) +
+    scale_shape_manual(values = c("Correctly Classified" = 21, "Misclassified" = 22)) +
+    labs(title = paste0(main), color="Classes (true)", shape= "Shape") +
+    scale_color_manual(values=class_colors) + #use the color values for color as they are, rather than mapping them to a scale
+    scale_fill_identity() +#use the color values for fill as they are, rather than mapping them to a scale
+    theme_bw() +
+    theme(panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          plot.title = element_text(hjust=0.5)) +
+    coord_fixed() +
+    guides(color = guide_legend(override.aes = list(shape = 21, fill = NA, stroke=2))) 
+  
+  
+  return(gg)
   
 }
