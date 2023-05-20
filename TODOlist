@@ -18,10 +18,13 @@ check import namespace
 
 ###MDScolorscape
 
-started building
+
 adjust fact of indsv, in mds i can keep also observaiton with na values in y and na pac and plot them black
 checks, like dissimilarity matrix how big
-probably will have ot switch to ggplot2, for legend also and resing of graph when i R studio i put zoom
+putting zoom feature?
+make input richer! size of points , stroke and other things
 
 DEBUG
 feed matrix with wrong dimensions
+try to feed vcr out test with a class that is not present in the predictions
+feed with vcrout that has strings in factors
