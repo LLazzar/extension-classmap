@@ -6,6 +6,9 @@
 
 #baseline ispiration is taken from silplot function so it is written in that style
 
+library(ggplot2)
+
+
 mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, main=NULL, size=3) {
   
   nlab <- length(vcrout$levels)
@@ -151,7 +154,7 @@ mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, mai
   
   library(ggplot2)
   
-  gg <- ggplot(plot_data, aes(x = dim1, y =dim2, color = yv, fill = yshade, shape = yshape, stroke=1.2)) +
+  gg <- ggplot(plot_data, aes(x = dim1, y =dim2, color = yv, fill = yshade, shape = yshape)) + #stroke=1.2 removed
     geom_point(size = size, alpha=1) +
     scale_shape_manual(values = c("Correctly Classified" = 21, "Misclassified" = 22)) +
     labs(title = paste0(main), color="Classes (true)", shape= "Shape") +
