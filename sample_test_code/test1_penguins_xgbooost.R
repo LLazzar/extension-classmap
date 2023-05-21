@@ -49,15 +49,16 @@ levels(train_label)
 num_class=length(unique(train_label))
 train_label_num <- as.integer(train_label) - 1 #Xgboost in multiclass wants integer starting from 0
 test_label_num <- as.integer(test_label) - 1 #Xgboost in multiclass wants integer starting from 0
-xgb_model <- xgboost(data = train_matrix, label = train_label_num, nrounds = 100, objective="multi:softprob",
-                     num_class=num_class)
+xgb_model <- xgboost(data = train_matrix, label = train_label_num, nrounds = 25, objective="multi:softprob",
+                     num_class=num_class, max_depth=1)
+xgb.importance(model=xgb_model)
 
 
-#
-source("feature_code/R/vcr_custom.R")
+source("feature_code/R/VCR_custom.R")
 library(classmap)
 
 #model evaluation on train
+
 #train_label_pred_num <- predict(xgb_model, train_matrix)
 #train_label_pred <- levels(train_label)[train_label_pred_num + 1]
 #train_label_pred <- factor(train_label_pred, levels = levels(train_label))
@@ -76,10 +77,70 @@ silplot(vcr.out)
 
 set.seed(123)
 
-# Generate the matrix
-distance_matrix <- matrix(runif(233 * 3), nrow = 233, ncol = 3)
-vcr.out.withdist=vcr.custom.train(y=train_label, train_posteriors, distToClasses = distance_matrix)
+###################################################
+#computing pairwise weighted dissimilarities
+library(cluster)
+importanceraw=xgb.importance(model=xgb_model)
+importanceweight=rep(0,ncol(train_matrix))
+names(importanceweight)=colnames(train_matrix)
+importanceweight["bill_length_mm"]
+
+for (i in 1:nrow(importanceraw)) {
+  importanceweight[as.character(importanceraw[i,1])]=as.numeric(importanceraw[i,2])
+}
+
+trainpairwisedis=daisy(train_matrix, type = list(symm=6:10), weights = importanceweight)
+
+# daisy_vcr skips the variables with zero weight.
+dismat  <- as.matrix(trainpairwisedis)
+meandis <- mean(as.vector(dismat), na.rm = TRUE)
+dismat[which(is.na(dismat))] <- meandis
+#
+# Compute neighbors by sorting dissimilarities:
+sortNgb <- t(apply(dismat, 1, order))[, -1] #contains indexes of nearest points for each row (row=observation)
+sortDis <- t(apply(dismat, 1, sort))[, -1] #contains dimmilarieties instead of indexes
+#
+# Compute initial fig[i, g] from cases to classes:
+#
+k=5
+yintv=as.numeric(train_label)
+
+distToClass <- matrix(rep(NA, nrow(train_matrix) * 3), ncol = 3)
+for (i in seq_len(nrow(train_matrix))) { # loop over all cases in indsv
+  for (g in seq_len(3)) { # loop over classes
+    ngbg <- which(yintv[sortNgb[i, ]] == g) #getting indexes of all in the same class
+    if (length(ngbg) > k) {ngbg <- ngbg[seq_len(k)]} #getting the k nearer
+    distToClass[i, g] <- median(sortDis[i, ngbg]) #take the median of the k nearer
+  }
+}
+
+#to compute for test set, compute dissimilarities with each member of training
+
+newDistToClass <- matrix(rep(NA, nrow(test_matrix) * 3), ncol = 3)
+
+for (itest in 1:nrow(test_matrix)){
+  temptrainplusone=rbind(test_matrix[itest,], train_matrix)
+  yintv=rbind(as.numeric(test_label)[itest],as.numeric(train_label)) #nb if a label is not in test
+  testpairwisedis=daisy(temptrainplusone, type = list(symm=6:10), weights = importanceweight)
+  dismat=as.matrix(testpairwisedis)
+  sortNgb <- t(apply(dismat, 1, order))[1, -1] #contains indexes of nearest points for each row (row=observation)
+  sortDis <- t(apply(dismat, 1, sort))[1, -1] #contains dimmilarieties instead of indexes
+  
+  for (g in seq_len(3)) { # loop over classes
+    ngbg <- which(yintv[sortNgb] == g) #getting indexes of all in the considered
+    if (length(ngbg) > k) {ngbg <- ngbg[seq_len(k)]} #getting the k nearer
+    newDistToClass[itest,g] <- median(sortDis[ngbg]) #take the median of the k nearer
+  }
+  }
+
+#############################################################
+
+vcr.out.withdist=vcr.custom.train(y=train_label, train_posteriors, distToClasses = distToClass)
+
 classmap(vcr.out.withdist, whichclass = 3)
+
+source("feature_code/R/VCR_visualization.R")
+mdsColorscale(vcrout = vcr.out, diss=trainpairwisedis, size=3)
 
 #model evaluation on test
 #test_label_pred_num <- predict(xgb_model, test_matrix)
@@ -98,7 +159,9 @@ vcr.out.test=vcr.custom.newdata(ynew=test_label, probs=test_posteriors, vcr.cust
 silplot(vcr.out.test)
 
 distance_matrix_test <- matrix(runif(100 * 3), nrow = 100, ncol = 3)
-vcr.out.withdisttest=vcr.custom.newdata(ynew = test_label, test_posteriors, newDistToClasses = distance_matrix_test, vcr.custom.train.out = vcr.out.withdist)
-classmap(vcr.out.withdisttest, whichclass = 3)
+vcr.out.withdisttest=vcr.custom.newdata(ynew = test_label, test_posteriors, newDistToClasses = newDistToClass, vcr.custom.train.out = vcr.out.withdist)
+classmap(vcr.out.withdisttest, whichclass = 1)
+
+
 
 
