@@ -7,7 +7,8 @@ source("R_classmap_package_full/R/VCR_auxiliaryFunctions.R") #importing auxillar
                                                              #so in case of integration of VCR_custom to classmap
                                                              #this import would be useless
 
-#when building classmapExt cellwise should go on inports and VCR_auxiliaryFunctions.R put in the package (as it can't be imported from classmap sinc eit is invisible from user)
+#when building classmapExt cellwise should go on imports and VCR_auxiliaryFunctions.R put in the package (as it can't be imported from classmap sinc eit is invisible from user)
+#in github repo package add about merge to classmpa section and what should be disgarded or added to classmap
 
 #########################
 
