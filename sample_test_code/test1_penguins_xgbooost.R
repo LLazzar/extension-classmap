@@ -140,6 +140,7 @@ vcr.out.withdist=vcr.custom.train(y=train_label, train_posteriors, distToClasses
 classmap(vcr.out.withdist, whichclass = 3)
 
 source("feature_code/R/VCR_visualization.R")
+source("feature_code/R/VCR_plotly.R")
 mdsColorscale(vcrout = vcr.out, diss=trainpairwisedis, size=3)
 
 #model evaluation on test
