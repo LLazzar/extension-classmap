@@ -1,17 +1,17 @@
-#adding new visualizations
+######################################
 
-#what needed:
-#cmdscale from ?
-#plotly
-#col2hex from gplots
+#dependencies needed 
+library(stats) #for cmdsclae, to produce mds from dissimilarity/dist matrix
+library(plotly) #to plot
+library(gplots) #only to use col2hex
 
-#baseline ispiration is taken from silplot function so it is written in that style
+#in case of making package should import plotly (whole) and col2hex from gplots and cmdscale from stats
 
-library(plotly)
-library(gplots) #only to use
+###############################################
 
+#rough baseline inspiration is taken from silplot function so it is written trying to follow that style
 
-mdsColorscale <- function (vcrout, diss, classLabels = NULL, classCols=NULL, main=NULL, size=8, bordersize=1.2) {
+mdsColorscale <- function (vcrout, diss, classLabels = NULL, classCols=NULL, main=NULL, size=8, bordersize=1.2, showLegend=TRUE) {
   
   # 
   #
@@ -32,7 +32,7 @@ mdsColorscale <- function (vcrout, diss, classLabels = NULL, classCols=NULL, mai
   #                discriminate among the different true classes of the points.
                    
   
-  nlab <- length(vcrout$levels)
+  nlab <- length(vcrout$levels) #number of labels the data problem has
   
   #handling class labels, mainly for legend and readibility of the graph
   if (is.null(classLabels)) { 
@@ -95,7 +95,7 @@ mdsColorscale <- function (vcrout, diss, classLabels = NULL, classCols=NULL, mai
     "yintnew"
   }
   
-  #getting valid labels (non missing, others are disgarded in visualization) #CAN PUT THEM BUT LEFT THEM IN BLACK
+  #getting valid labels (non missing, others are discarded and not visualization) #CAN PUT THEM BUT LEFT THEM IN BLACK
   indsv <- which(!is.na(yintv))
   if (length(indsv) == 0) {
     stop(paste0(whichyint, " has no available values, ",
@@ -105,26 +105,24 @@ mdsColorscale <- function (vcrout, diss, classLabels = NULL, classCols=NULL, mai
     stop(paste0("At least 2 cases with non-missing ",
                 whichyint, " are required."))
   }
-  yintv <- yintv[indsv]
+  yintv <- yintv[indsv] #set yintv to only available labels
   ayint <- sort(unique(yintv))
   if (sum(!(yintv %in% seq_len(nlab))) > 0) {
     stop(paste0("Not all ", whichyint, "[indsv] lie in 1:",
                 nlab))
   }
   
-  #getting pac for non missing values
-  PAC <- vcrout$PAC[indsv]
+  #getting PAC for non missing values
+  #curcial quanitty that will allow to shade the filling of the points
+  PAC <- vcrout$PAC[indsv] 
   
   if (sum(is.na(PAC)) > 0)
     stop("PAC[indsv] has missing values.")
   
-  #actually convenient using silohutte value sense of intepretation
-  #high sil (near 1), max intensity color which is max confidence right class
-  #low sil (near 1), low intensity color which is min confidence right class
-  # <0, change also shape meaning it's missclassified
+  #computing also silhoutte value
   si <- 1 - 2 * PAC 
   
-  #setting default title of the plot
+  #setting a default title for the plot
   if (is.null(main)) { 
     main <- paste0(whichdata, " MDS color-scaled plot ")
   }
@@ -136,92 +134,65 @@ mdsColorscale <- function (vcrout, diss, classLabels = NULL, classCols=NULL, mai
     stop(paste("ERROR: The dissimilarity matrix or dist object is not a ",n, "x", n, " as expected. It should be about the same data used to produce the vcrout object feeded in this function"))
   }
   
+  #MDS scaling of the dissimilarity matrix/dist object
   mds=cmdscale(diss)
-  
-  #QUANTITIES DEFINED FOR TES, REMOVE LATER
-  #y=c("A","A","A", "C", "B", "B", "C")
-  #y=as.factor(y)
-  #yintv=as.numeric(y)
-  #levels=levels(y)
-  #nlab=length(levels)
-  #classCols #defines class colors
   
   #matching each observation with its class color
   ycolor=classCols[yintv]
   
-  #creating a vector with faded color 
+  #creating a vector for faded/shaded color 
   yshade=rep(NA,length(yintv))
   
   #setting the shade according to PAC/sil value (using PAC because range for scale pal is [0,1], if we would use sil value we would have to to stretch again only in [0,1] domain)
   for (i in 1:length(yshade)){
-    pal <- colorRamp(c(ycolor[i], "white")) #create the palette containing gradient between the color and white
-    pal = pal(0.9*PAC[i]) #set color according to PAC information
-    yshade[i] = rgb(pal, maxColorValue = 255) #color back to code
+    pal <- colorRamp(c(ycolor[i], "white")) #create the palette containing gradient between the color and white, solid white is HIGH pac (1) and low confidence of true class
+    pal = pal(PAC[i]) #set color according to PAC information, could use a scaling factor to multiply PAC, such as 0.9, so that total solid white would never be reached in the shade
+    yshade[i] = rgb(pal, maxColorValue = 255) #color back to hex code
   }
   
-  #setting shape
-  yshape=ifelse(PAC > 0.5, 22, 21) #if PAC > 0.5 point is misclassified, shape pch=22 square
-  #else  point is correctly classified, shape pch=21 circle
-  
-  #plot(mds, col=ycolor, pch=yshape, bg=yshade, cex=1)
-  
-  #trying instead using ggplot2
-  #in ggplot we need dataframe with all related quantities, that's how it works
-  
-  #creating dataframe with coordinates
+  #creating dataframe that cointains info for plotting:
   plot_data <- data.frame(
-    dim1 = mds[,1],
+    dim1 = mds[,1], #coordinates in 2d
     dim2 = mds[,2],
     PAC = PAC,
-    ycolor = ycolor,
-    yv=yv,
-    yshape = ifelse(PAC > 0.5, "x", "circle"),
-    yshade = yshade
+    sil=si, #silhoutte width
+    ycolor = ycolor, #class color
+    yv=yv, #the label 
+    yshape = ifelse(PAC > 0.5, "x", "circle"), #shape over pac 0.5 is misclassified and set to a cross
+    yshade = yshade #color shade for the fill
   )
   
-  class_colors = setNames(classCols, lvls ) #match 
   
-  library(ggplot2)
+  #creating plotly basic object
+  pp = plot_ly(type = 'scatter', mode = 'markers')
   
-  fig = plot_ly(type = 'scatter', mode = 'markers')
-  
-  #fig <- fig %>% add_markers(x = mds[,1], y = mds[,2], name="corect class", 
-                             #marker=list(size=7, color=I('black'), symbol=c("circle-open","square")), visible = 'legendonly', showlegend=TRUE)
-  
-  for (i in 1:nrow(plot_data)) {
-  fig <- fig %>% 
+  #plotting points separately one by one with the loop
+  for (i in 1:length(yintv)) {
+  pp <- pp %>% 
     add_trace(x = plot_data$dim1[i], y = plot_data$dim2[i], 
               marker=list(size=size, color=plot_data$yshade[i],
                           line=list(color=plot_data$ycolor[i], width=bordersize), symbol=plot_data$yshape[i]),  showlegend = F)
   }
   
-  #add dummy traces for legend
+  #add legend for shape, though dummy empty trace setting value to Inf
+  pp <- pp %>% add_trace(x = Inf, y = Inf, name="Correctly classified",
+             marker=list(size=10, color='black', symbol="circle-open"), legendgroup="shape")
+  pp <- pp %>% add_trace(x = Inf, y = Inf, name="Misclassified",
+                           marker=list(size=10, color='black', symbol="x-open"), legendgroup="shape")
   
-  #legend for the shape correct/incorrect prediction
-  fig <- fig %>% add_trace(x = Inf, y = Inf, name="Correctly classified",
-             marker=list(size=12, color='black', symbol="circle-open"))
+  #add legend for class color, as above adding dummy traces
   
-  fig <- fig %>% add_trace(x = Inf, y = Inf, name="Misclassified",
-                           marker=list(size=12, color='black', symbol="x-open"))
-  
-  
-  
-  #class color
-  
-  for (g in 1:length(lvls)) {
+  for (g in 1:length(lvls)) { #loop over all posible classes
     
-  fig <- fig %>% add_trace(plot_data, x = Inf, y = Inf, legendgroup="Classes",
+  pp <- pp %>% add_trace(plot_data, x = Inf, y = Inf, legendgroup="Classes",
                            name=lvls[g], mode="markers", marker=list(size=8, opacity=1, color=classCols[g], symbol="circle-open",line=list(color=classCols[g], width=2)),
                            hoverinfo="none")
   }
   
-  fig <- fig %>% layout(title= list(text = paste0(main)))
-  
-  #https://plotly.com/r/line-and-scatter/#mapping-data-to-symbols
-  fig
+  #adding title to graph
+  pp <- pp %>% layout(title= list(text = paste0(main)))
   
   
-  
-  return(fig)
+  return(pp)
   
 }
