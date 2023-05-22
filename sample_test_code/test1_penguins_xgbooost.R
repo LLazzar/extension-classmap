@@ -165,7 +165,7 @@ distance_matrix_test <- matrix(runif(100 * 3), nrow = 100, ncol = 3)
 vcr.out.withdisttest=vcr.custom.newdata(ynew = test_label, test_posteriors, newDistToClasses = newDistToClass, vcr.custom.train.out = vcr.out.withdist)
 classmap(vcr.out.withdisttest, whichclass = 3)
 
-mdsColorscale(vcrout = vcr.out.test, diss=testpairwisediss)
+mdsColorscale(vcrout = vcr.out.test, diss=testpairwisediss, classCols = c("darkgreen","red","darkblue"))
 
 
 
