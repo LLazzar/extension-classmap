@@ -133,6 +133,8 @@ for (itest in 1:nrow(test_matrix)){
   }
   }
 
+testpairwisediss=daisy(test_matrix, type = list(symm=6:10), weights = importanceweight)
+  
 #############################################################
 
 vcr.out.withdist=vcr.custom.train(y=train_label, train_posteriors, distToClasses = distToClass)
@@ -141,7 +143,7 @@ classmap(vcr.out.withdist, whichclass = 3)
 
 source("feature_code/R/VCR_visualization.R")
 source("feature_code/R/VCR_plotly.R")
-mdsColorscale(vcrout = vcr.out, diss=trainpairwisedis, size=3)
+mdsColorscale(vcrout = vcr.out, diss=trainpairwisedis)
 
 #model evaluation on test
 #test_label_pred_num <- predict(xgb_model, test_matrix)
@@ -161,7 +163,9 @@ silplot(vcr.out.test)
 
 distance_matrix_test <- matrix(runif(100 * 3), nrow = 100, ncol = 3)
 vcr.out.withdisttest=vcr.custom.newdata(ynew = test_label, test_posteriors, newDistToClasses = newDistToClass, vcr.custom.train.out = vcr.out.withdist)
-classmap(vcr.out.withdisttest, whichclass = 1)
+classmap(vcr.out.withdisttest, whichclass = 3)
+
+mdsColorscale(vcrout = vcr.out.test, diss=testpairwisediss)
 
 
 
