@@ -2,14 +2,35 @@
 
 #what needed:
 #cmdscale from ?
-#ggplot2
+#plotly
+#col2hex from gplots
 
 #baseline ispiration is taken from silplot function so it is written in that style
 
 library(plotly)
+library(gplots) #only to use
 
 
-mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, main=NULL, size=8, bordersize=1.2) {
+mdsColorscale <- function (vcrout, diss, classLabels = NULL, classCols=NULL, main=NULL, size=8, bordersize=1.2) {
+  
+  # 
+  #
+  #
+  # Arguments:
+  #
+  # vcrout        :the output of a vcr.*.train or vcr.*.newdata
+  # diss          :a distance structure such as that returned by dist or 
+  #                a full symmetric matrix containing pairwise dissimilarities about the set of
+  #                observations evaluated in vcrout. Distance matrix should be coherent with
+  #                view of data points that classifiers has.
+  # classLabels   :the labels (levels) of the classes. If NULL, they are taken from vcrout.
+  # classCols     :a list of colors for the classes. There should be at least as many as there 
+  #                are levels. If NULL a default palette is used.
+  # main          :title for the plot. If NULL, a default title is used.
+  # size          :sets the size of the plotted points. 
+  # bordersize    :sets the thickness of the border around each data point. The color of the border is used to 
+  #                discriminate among the different true classes of the points.
+                   
   
   nlab <- length(vcrout$levels)
   
@@ -28,9 +49,9 @@ mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, mai
     }
   }
   
-  #produce main colors
+  #produce main colors used to discrinate among different classes
   if (is.null(classCols)) {
-    classCols <- rainbow(nlab) #like in silplot son that color would hopefully match in the two visualizations
+    classCols <- rainbow(nlab) #like in silplot so that color would hopefully match in the two visualizations
   }
   else {
     if (!is.vector(classCols)) {
@@ -42,6 +63,7 @@ mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, mai
                   "."))
     }
     classCols <- classCols[seq_len(nlab)]
+    classCols = col2hex(classCols) #from library gplot, to convert like "blue", "green" to hex code, if that kind of colors are provided, if already in hex code nothing happens
   }
   
   #getting the given classes and checks for training and test
@@ -105,6 +127,13 @@ mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, mai
   #setting default title of the plot
   if (is.null(main)) { 
     main <- paste0(whichdata, " MDS color-scaled plot ")
+  }
+  
+  #dimensionality check on dimension of dissmatrix
+  dims=dim(diss)
+  n=length(yv)
+  if (dims[1] != n || dims[2] != n) {
+    stop(paste("ERROR: The dissimilarity matrix or dist object is not a ",n, "x", n, " as expected. It should be about the same data used to produce the vcrout object feeded in this function"))
   }
   
   mds=cmdscale(diss)
@@ -182,7 +211,7 @@ mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, mai
   for (g in 1:length(lvls)) {
     
   fig <- fig %>% add_trace(plot_data, x = Inf, y = Inf, legendgroup="Classes",
-                           name=lvls[g], mode="markers", marker=list(size=8, opacity=1, color=classCols[g], symbol="circle-open"),
+                           name=lvls[g], mode="markers", marker=list(size=8, opacity=1, color=classCols[g], symbol="circle-open",line=list(color=classCols[g], width=2)),
                            hoverinfo="none")
   }
   
