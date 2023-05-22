@@ -28,7 +28,7 @@ mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, mai
     }
   }
   
-  #produce main colors
+  #produce main colors used to discriminate among different classes
   if (is.null(classCols)) {
     classCols <- rainbow(nlab) #like in silplot son that color would hopefully match in the two visualizations
   }
@@ -58,6 +58,7 @@ mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, mai
     yv <- vcrout$ynew
     training <- FALSE
   }
+  
   
   #produce strings for training and test
   whichdata <- if (training) {
@@ -106,6 +107,14 @@ mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, mai
   if (is.null(main)) { 
     main <- paste0(whichdata, " MDS color-scaled plot ")
   }
+  
+  #dimensionality check on dimension of dissmatrix
+  dims=dim(diss)
+  n=length(yv)
+  if (dims[1] != n || dims[2] != n) {
+    stop(paste("ERROR: The dissimilarity matrix or dist object is not a ",n, "x", n, " as expected. "))
+  }
+  
   
   mds=cmdscale(diss)
   
