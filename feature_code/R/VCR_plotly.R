@@ -9,7 +9,7 @@
 library(plotly)
 
 
-mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, main=NULL, size=3) {
+mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, main=NULL, size=8, bordersize=1.2) {
   
   nlab <- length(vcrout$levels)
   
@@ -146,7 +146,7 @@ mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, mai
     PAC = PAC,
     ycolor = ycolor,
     yv=yv,
-    yshape = ifelse(PAC > 0.5, "Misclassified", "Correctly Classified"),
+    yshape = ifelse(PAC > 0.5, "x", "circle"),
     yshade = yshade
   )
   
@@ -154,12 +154,42 @@ mdsColorscale <- function (vcrout, diss, classCols=NULL, classLabels = NULL, mai
   
   library(ggplot2)
   
-  fig <- plot_ly(data = plot_data, x = ~dim1, y = ~dim2, type = 'scatter',
-                 mode = 'markers', symbol = ~yshape, symbols = c('100','101'),
-                 color = I("black"),  marker = list(size = 10))
+  fig = plot_ly(type = 'scatter', mode = 'markers')
+  
+  #fig <- fig %>% add_markers(x = mds[,1], y = mds[,2], name="corect class", 
+                             #marker=list(size=7, color=I('black'), symbol=c("circle-open","square")), visible = 'legendonly', showlegend=TRUE)
+  
+  for (i in 1:nrow(plot_data)) {
+  fig <- fig %>% 
+    add_trace(x = plot_data$dim1[i], y = plot_data$dim2[i], 
+              marker=list(size=size, color=plot_data$yshade[i],
+                          line=list(color=plot_data$ycolor[i], width=bordersize), symbol=plot_data$yshape[i]),  showlegend = F)
+  }
+  
+  #add dummy traces for legend
+  
+  #legend for the shape correct/incorrect prediction
+  fig <- fig %>% add_trace(x = Inf, y = Inf, name="Correctly classified",
+             marker=list(size=12, color='black', symbol="circle-open"))
+  
+  fig <- fig %>% add_trace(x = Inf, y = Inf, name="Misclassified",
+                           marker=list(size=12, color='black', symbol="x-open"))
+  
+  
+  
+  #class color
+  
+  for (g in 1:length(lvls)) {
+    
+  fig <- fig %>% add_trace(plot_data, x = Inf, y = Inf, legendgroup="Classes",
+                           name=lvls[g], mode="markers", marker=list(size=8, opacity=1, color=classCols[g], symbol="circle-open"),
+                           hoverinfo="none")
+  }
+  
+  fig <- fig %>% layout(title= list(text = paste0(main)))
   
   #https://plotly.com/r/line-and-scatter/#mapping-data-to-symbols
-  
+  fig
   
   
   
