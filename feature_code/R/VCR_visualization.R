@@ -23,7 +23,9 @@ mdscolorscale <- function (vcrout, diss, classLabels = NULL, classCols=NULL, mai
   # vcrout        :the output of a vcr.*.train or vcr.*.newdata
   # diss          :a distance structure such as that returned by dist or 
   #                a full symmetric matrix containing pairwise dissimilarities about the set of
-  #                observations evaluated in vcrout. Distance matrix should be coherent with
+  #                observations evaluated in vcrout. The order of the observation should be the same 
+  #                in which the observations are presented in producing the vcrout object.
+  #                Distance matrix should be coherent with
   #                view of data points that classifiers has.
   # classLabels   :the labels (levels) of the classes. If NULL, they are taken from vcrout.
   # classCols     :a list of colors for the classes. There should be at least as many as there 
@@ -33,6 +35,10 @@ mdscolorscale <- function (vcrout, diss, classLabels = NULL, classCols=NULL, mai
   # bordersize    :sets the thickness of the border around each data point. The color of the border is used to 
   #                discriminate among the different true classes of the points.
                    
+  #check vcrout object if valid and not null
+  if (is.null(vcrout$levels)) { #check on random quantity levels that always exists
+    stop("vcrout object is invalid (empty?, do you created it?)")
+  }
   
   nlab <- length(vcrout$levels) #number of labels the data problem has
   
@@ -131,10 +137,21 @@ mdscolorscale <- function (vcrout, diss, classLabels = NULL, classCols=NULL, mai
   }
   
   #dimensionality check on dimension of dissmatrix
-  dims=dim(diss)
+  if (is.null(diss)) {
+    stop("diss is NULL")
+  }
+  
   n=length(yv)
-  if (dims[1] != n || dims[2] != n) {
-    stop(paste("ERROR: The dissimilarity matrix or dist object is not a ",n, "x", n, " as expected. It should be about the same data used to produce the vcrout object feeded in this function"))
+  if (is.matrix(diss)) {
+    dims=dim(diss)
+    if (dims[1] != n || dims[2] != n) {
+      stop(paste("ERROR: The dissimilarity matrix or dist object is not a ",n, "x", n, " as expected. It should be about the same data used to produce the vcrout object feeded in this function"))
+    }
+  }
+  else { #it's diss/dist object'
+    if (attr(diss, "Size") != n ) {
+      stop(paste("ERROR: The dissimilarity matrix or dist object is not aabout",n, "elements as expected. It should be about the same data used to produce the vcrout object feeded in this function"))
+    }
   }
   
   #MDS scaling of the dissimilarity matrix/dist object
