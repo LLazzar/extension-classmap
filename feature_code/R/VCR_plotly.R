@@ -169,9 +169,11 @@ mdsColorscale <- function (vcrout, diss, classLabels = NULL, classCols=NULL, mai
   #plotting points separately one by one with the loop
   for (i in 1:length(yintv)) {
   pp <- pp %>% 
-    add_trace(x = plot_data$dim1[i], y = plot_data$dim2[i], 
+    add_trace(x = plot_data$dim1[i], y = plot_data$dim2[i], name=paste0("Ids:",i),
               marker=list(size=size, color=plot_data$yshade[i],
-                          line=list(color=plot_data$ycolor[i], width=bordersize), symbol=plot_data$yshape[i]),  showlegend = F)
+                          line=list(color=plot_data$ycolor[i], width=bordersize), symbol=plot_data$yshape[i]),  
+              text=paste0("PAC:", round(plot_data$PAC[i],2),"\n","Sil:", round(plot_data$sil[i],2)),
+              hoverinfo="text+name", showlegend = F)
   }
   
   #add legend for shape, though dummy empty trace setting value to Inf
@@ -180,12 +182,15 @@ mdsColorscale <- function (vcrout, diss, classLabels = NULL, classCols=NULL, mai
   pp <- pp %>% add_trace(x = Inf, y = Inf, name="Misclassified",
                            marker=list(size=10, color='black', symbol="x-open"), legendgroup="shape")
   
-  #add legend for class color, as above adding dummy traces
+  #add title for legend of classes
+  pp <- pp %>% add_trace(x = Inf, y = Inf, name="True Classes: (Border Color)", legendgroup="Classes", opacity=0,
+                         marker=list(size=15, color='black', symbol="x-open"))
   
-  for (g in 1:length(lvls)) { #loop over all posible classes
+  #add legend for class color, as above adding dummy traces
+    for (g in 1:length(lvls)) { #loop over all posible classes
     
   pp <- pp %>% add_trace(plot_data, x = Inf, y = Inf, legendgroup="Classes",
-                           name=lvls[g], mode="markers", marker=list(size=8, opacity=1, color=classCols[g], symbol="circle-open",line=list(color=classCols[g], width=2)),
+                           name=lvls[g], mode="markers", marker=list(size=10, opacity=1, color=classCols[g], symbol="circle-x-open",line=list(color=classCols[g], width=2)),
                            hoverinfo="none")
   }
   
