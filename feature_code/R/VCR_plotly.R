@@ -3,7 +3,9 @@
 #dependencies needed 
 library(stats) #for cmdsclae, to produce mds from dissimilarity/dist matrix
 library(plotly) #to plot
-library(gplots) #only to use col2hex
+library(gplots) #only to use col2hex()
+library(grDevices) #for col2rgb() etc, managing colors
+library(colorspace) #to use darken() default palette created by rainbow()
 
 #in case of making package should import plotly (whole) and col2hex from gplots and cmdscale from stats
 
@@ -25,7 +27,7 @@ mdsColorscale <- function (vcrout, diss, classLabels = NULL, classCols=NULL, mai
   #                view of data points that classifiers has.
   # classLabels   :the labels (levels) of the classes. If NULL, they are taken from vcrout.
   # classCols     :a list of colors for the classes. There should be at least as many as there 
-  #                are levels. If NULL a default palette is used.
+  #                are levels. If NULL a default palette is used. Suggested to use darker colors
   # main          :title for the plot. If NULL, a default title is used.
   # size          :sets the size of the plotted points. 
   # bordersize    :sets the thickness of the border around each data point. The color of the border is used to 
@@ -52,6 +54,7 @@ mdsColorscale <- function (vcrout, diss, classLabels = NULL, classCols=NULL, mai
   #produce main colors used to discrinate among different classes
   if (is.null(classCols)) {
     classCols <- rainbow(nlab) #like in silplot so that color would hopefully match in the two visualizations
+    classCols <- darken(classCols, 0.6) #darkening color beacuse with dark class color visualization is better, just darken default palette rainbow so just as sil colours but more darker
   }
   else {
     if (!is.vector(classCols)) {
@@ -176,22 +179,26 @@ mdsColorscale <- function (vcrout, diss, classLabels = NULL, classCols=NULL, mai
               hoverinfo="text+name", showlegend = F)
   }
   
-  #add legend for shape, though dummy empty trace setting value to Inf
-  pp <- pp %>% add_trace(x = Inf, y = Inf, name="Correctly classified",
-             marker=list(size=10, color='black', symbol="circle-open"), legendgroup="shape")
-  pp <- pp %>% add_trace(x = Inf, y = Inf, name="Misclassified",
+  if (showLegend) {
+    
+    #add legend for shape, though dummy empty trace setting value to Inf
+    pp <- pp %>% add_trace(x = Inf, y = Inf, name="Correctly classified",
+                 marker=list(size=10, color='black', symbol="circle-open"), legendgroup="shape")
+    pp <- pp %>% add_trace(x = Inf, y = Inf, name="Misclassified",
                            marker=list(size=10, color='black', symbol="x-open"), legendgroup="shape")
   
-  #add title for legend of classes
-  pp <- pp %>% add_trace(x = Inf, y = Inf, name="True Classes: (Border Color)", legendgroup="Classes", opacity=0,
+    #add title for legend of classes
+    pp <- pp %>% add_trace(x = Inf, y = Inf, name="True Classes: (Border Color)", legendgroup="Classes", opacity=0,
                          marker=list(size=15, color='black', symbol="x-open"))
   
-  #add legend for class color, as above adding dummy traces
+    #add legend for class color, as above adding dummy traces
     for (g in 1:length(lvls)) { #loop over all posible classes
     
-  pp <- pp %>% add_trace(plot_data, x = Inf, y = Inf, legendgroup="Classes",
+      pp <- pp %>% add_trace(plot_data, x = Inf, y = Inf, legendgroup="Classes",
                            name=lvls[g], mode="markers", marker=list(size=10, opacity=1, color=classCols[g], symbol="circle-x-open",line=list(color=classCols[g], width=2)),
                            hoverinfo="none")
+    }
+  
   }
   
   #adding title to graph
