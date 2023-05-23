@@ -19,18 +19,17 @@ check import namespace
 
 ### MDScolorscape ###################################################################
 
-- ADD INFO WHEN YOU HOVER TO POINT, ids, sil, pac. (also classified to?)
-- make input of function richer??
-- maybe change colors, silplot rainbow funciton assign not so good color for the scope, violet and red are the only good, darkcolor are best as I tried with feeding personalized classcols like darkblue darkgreen etc,
-# make documentation
+- option to show legend or not
+- make input of function richer?? FOR NOW IT'S OKAY
+- make documentation
 
 
-
+-when hover tell also wich is ypred LONG MAYBE LAST
 -add tsne umap or other dim reduction? IT WOULD MEAN TO GO OUTSIDE MDS
 -for test add trasparency in backgorund the training, would imply redoing dissimilarity matrix together etc.  TOO LONG
 -adjust fact of indsv, in mds i can keep also observation with na values in y and na pac and plot them black REQUIRES A LITTLE BIT OF TIME; MAYBE AS LAST LAST THING
 
 DEBUG
-feed matrix with wrong dimensions
+feed matrix with wrong dimensions DEBUGGED
 try to feed vcr out test with a class that is not present in the predictions
 feed with vcrout that has strings in factors
