@@ -34,6 +34,7 @@ mdscolorscale <- function (vcrout, diss, classLabels = NULL, classCols=NULL, mai
   # size          :sets the size of the plotted points. 
   # bordersize    :sets the thickness of the border around each data point. The color of the border is used to 
   #                discriminate among the different true classes of the points.
+  # showLegend    :if TRUE, a legend is shown to the right of the plot.
                    
   #check vcrout object if valid and not null
   if (is.null(vcrout$levels)) { #check on random quantity levels that always exists
